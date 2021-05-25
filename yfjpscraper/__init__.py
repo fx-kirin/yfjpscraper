@@ -16,6 +16,7 @@ from urllib.parse import urlencode
 
 import bs4
 import kanirequests
+from kanirequests import KaniRequests
 
 from .parser import parse_html, parse_json, parse_json_split
 
@@ -29,7 +30,6 @@ def get_data_stock(
     end_dt: datetime.date,
 ):
 
-    from kanirequests import KaniRequests
 
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
@@ -43,6 +43,8 @@ def get_data_stock(
     )
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
+    if "指定されたページまたは銘柄は存在しません。" in result.text:
+        return True
     jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
     stockJwtToken = re.search(
         r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
@@ -91,7 +93,7 @@ def get_data_futures(
     start_dt: datetime.date,
     end_dt: datetime.date,
 ):
-    session = kanirequests.HTMLSession()
+    session = KaniRequests()
     page = 1
     while True:
         params = {
@@ -110,7 +112,6 @@ def get_data_futures(
         if not resp.ok:
             break
         html_soup = bs4.BeautifulSoup(resp.text, "html.parser")
-        kanirequests.open_html_in_browser(resp.content)
         stop = yield from parse_html(html_soup)
         if stop:
             break
