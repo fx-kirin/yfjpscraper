@@ -52,7 +52,6 @@ def get_data_stock(
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
     code = re.search(r"\d{4}\.T", result.url).group(0)
-    breakpoint()
     page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
     headers = {
         "x-z-jwt-token": stockJwtToken,
