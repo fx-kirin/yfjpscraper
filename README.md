@@ -13,8 +13,7 @@ pip install yfjpscraper
 ```python
 def get_data(tick_id: str,
              start_dt: datetime.date,
-             end_dt: datetime.date,
-             html_parser="html.parser"):
+             end_dt: datetime.date):
 ```
 
 # Authors
