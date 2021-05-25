@@ -42,7 +42,7 @@ def get_data_stock(
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
     if "指定されたページまたは銘柄は存在しません。" in result.text:
-        raise RuntimeError("Target Stock was not found.")
+        logging.error("Target Stock was not found. %s", tick_id)
     jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
     stockJwtToken = re.search(
         r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
