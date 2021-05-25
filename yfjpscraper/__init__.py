@@ -48,9 +48,11 @@ def get_data_stock(
         r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
     ).group(1)
     page = 1
+    result.url
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
-    code = f"{tick_id}.T"
+    code = re.search(r"\d{4}\.T", result.url).group(0)
+    breakpoint()
     page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
     headers = {
         "x-z-jwt-token": stockJwtToken,
@@ -64,7 +66,7 @@ def get_data_stock(
         params = {
             "id": "priceHistory",
             "params": {
-                "code": "9984.T",
+                "code": code,
                 "fromDate": from_date,
                 "toDate": to_date,
                 "timeFrame": "daily",
@@ -78,8 +80,8 @@ def get_data_stock(
         json_data = resp.json()
         if get_split is False:
             yield from parse_json_split(json_data)
-        stop = yield from parse_json(json_data)
             get_split = True
+        stop = yield from parse_json(json_data)
         if stop:
             break
         page = page + 1
