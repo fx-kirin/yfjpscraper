@@ -56,6 +56,7 @@ def _parse_stock_division(data: List[str]) -> Dict:
         "division_to": float(matched.group(2)),
     }
 
+
 def parse_json(json_data) -> bool:
     data_rows = json_data["priceHistory"]["history"]["histories"]
     if len(data_rows) == 0:
@@ -70,7 +71,22 @@ def parse_json(json_data) -> bool:
             "volume": float(row["volume"].replace(",", "")),
             "final_v": float(row["adjustedClosePrice"].replace(",", "")),
         }
+    if "splitHistories" in json_data["priceHistory"]["history"]:
+        split = json_data["priceHistory"]["history"]["splitHistories"]
     return False
+
+
+def parse_json_split(json_data):
+    if "splitHistories" in json_data["priceHistory"]["history"]:
+        splits = json_data["priceHistory"]["history"]["splitHistories"]
+
+        for split in splits:
+            yield {
+                "date": datetime.datetime.strptime(split["splitDate"], fmt).date(),
+                "division": "division",
+                "division_from": float(1),
+                "division_to": float(split["splitRate"].replace(",", "")),
+            }
 
 
 def parse_html(html_soup: bs4.BeautifulSoup) -> bool:

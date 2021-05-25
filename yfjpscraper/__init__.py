@@ -15,10 +15,9 @@ import re
 from urllib.parse import urlencode
 
 import bs4
-import jwt
 import kanirequests
 
-from .parser import parse_html, parse_json
+from .parser import parse_html, parse_json, parse_json_split
 
 logger = logging.getLogger("yf_parser")
 page_url = "http://info.finance.yahoo.co.jp/history/"
@@ -45,12 +44,22 @@ def get_data_stock(
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
     jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
-    stockJwtToken = re.search(r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
+    stockJwtToken = re.search(
+        r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
+    ).group(1)
     page = 1
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
     code = f"{tick_id}.T"
     page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
+    headers = {
+        "x-z-jwt-token": stockJwtToken,
+        "Accept": "*/*",
+        "Origin": "https://finance.yahoo.co.jp",
+        "Content-Type": "application/json",
+        "Referer": result.url,
+    }
+    get_split = False
     while True:
         params = {
             "id": "priceHistory",
@@ -63,15 +72,14 @@ def get_data_stock(
             },
         }
         logger.info(page_url)
-        headers = {"x-z-jwt-token": stockJwtToken,
-                   "Accept": "*/*",
-                   "Origin": "https://finance.yahoo.co.jp",
-                   "Content-Type": "application/json",
-                   "Referer": result.url
-                   }
-        resp = session.post(page_url, data=json.dumps(params).replace(" ", ""), headers=headers)
+        resp = session.post(
+            page_url, data=json.dumps(params).replace(" ", ""), headers=headers
+        )
         json_data = resp.json()
+        if get_split is False:
+            yield from parse_json_split(json_data)
         stop = yield from parse_json(json_data)
+            get_split = True
         if stop:
             break
         page = page + 1
