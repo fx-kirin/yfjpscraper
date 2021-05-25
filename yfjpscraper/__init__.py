@@ -29,8 +29,6 @@ def get_data_stock(
     start_dt: datetime.date,
     end_dt: datetime.date,
 ):
-
-
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
         "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
@@ -44,7 +42,7 @@ def get_data_stock(
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
     if "指定されたページまたは銘柄は存在しません。" in result.text:
-        return True
+        raise RuntimeError("Target Stock was not found.")
     jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
     stockJwtToken = re.search(
         r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
