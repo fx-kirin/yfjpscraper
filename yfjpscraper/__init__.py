@@ -98,6 +98,9 @@ def get_data_futures(
             break
         if "該当する期間のデータはありません。" in resp.text:
             break
+        if "該当する銘柄はありません。" in resp.text:
+            logger.info("Target stock was not found.")
+            break
         html_soup = bs4.BeautifulSoup(resp.text, "html.parser")
         stop = yield from parse_html(html_soup)
         if stop:
