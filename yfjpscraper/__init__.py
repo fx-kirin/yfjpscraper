@@ -96,6 +96,8 @@ def get_data_futures(
         resp = session.get(page_url, params=params)
         if not resp.ok:
             break
+        if "該当する期間のデータはありません。" in resp.text:
+            break
         html_soup = bs4.BeautifulSoup(resp.text, "html.parser")
         stop = yield from parse_html(html_soup)
         if stop:

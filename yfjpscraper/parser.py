@@ -115,5 +115,4 @@ def parse_html(html_soup: bs4.BeautifulSoup) -> bool:
                 yield _parse_f(data)
             except Exception as e:
                 print("Error occured", e)
-                pass
     return False
