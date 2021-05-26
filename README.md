@@ -18,4 +18,4 @@ def get_data(tick_id: str,
 
 # Authors
 
-`kanirequests` was written by `fx-kirin <fx.kirin@gmail.com>`_.
+`yfjpscraper` was written by `fx-kirin <fx.kirin@gmail.com>`_.
