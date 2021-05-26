@@ -36,7 +36,6 @@ def get_data_stock(
         r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
     ).group(1)
     page = 1
-    result.url
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
     code = re.search(r"\d{4}\.\w", result.url).group(0)
@@ -106,21 +105,19 @@ def get_data_futures(
 
 def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date):
     tick_id = str(tick_id)
-    if len(tick_id) > 4:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
+        "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
+        "Connection": "keep-alive",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+        "Accept-Encoding": "gzip, deflate, br",
+    }
+    session = kanirequests.KaniRequests(
+        headers=headers,
+    )
+    root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
+    result = session.get(root_url)
+    if "指定されたページまたは銘柄は存在しません。" in result.text:
         return get_data_futures(tick_id, start_dt, end_dt)
     else:
-        headers = {
-            "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
-            "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
-            "Connection": "keep-alive",
-            "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
-            "Accept-Encoding": "gzip, deflate, br",
-        }
-        session = kanirequests.KaniRequests(
-            headers=headers,
-        )
-        root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
-        result = session.get(root_url)
-        if "指定されたページまたは銘柄は存在しません。" in result.text:
-            return get_data_futures(tick_id, start_dt, end_dt)
         return get_data_stock(session, result, tick_id, start_dt, end_dt)

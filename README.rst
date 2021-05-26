@@ -23,4 +23,4 @@ usage
 Authors
 =======
 
-``kanirequests`` was written by `fx-kirin <fx.kirin@gmail.com>`_.
+``yfjpscraper`` was written by `fx-kirin <fx.kirin@gmail.com>`_.
