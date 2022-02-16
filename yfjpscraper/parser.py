@@ -58,7 +58,9 @@ def _parse_stock_division(data: List[str]) -> Dict:
 
 
 def parse_json(json_data) -> bool:
-    data_rows = json_data["priceHistory"]["history"]["histories"]
+    if "priceHistory" in json_data:
+        json_data = json_data["priceHistory"]
+    data_rows = json_data["history"]["histories"]
     if len(data_rows) == 0:
         return True
     for row in data_rows:
@@ -71,14 +73,16 @@ def parse_json(json_data) -> bool:
             "volume": float(row["volume"].replace(",", "")),
             "final_v": float(row["adjustedClosePrice"].replace(",", "")),
         }
-    if "splitHistories" in json_data["priceHistory"]["history"]:
-        split = json_data["priceHistory"]["history"]["splitHistories"]
+    if "splitHistories" in json_data["history"]:
+        split = json_data["history"]["splitHistories"]
     return False
 
 
 def parse_json_split(json_data):
-    if "splitHistories" in json_data["priceHistory"]["history"]:
-        splits = json_data["priceHistory"]["history"]["splitHistories"]
+    if "priceHistory" in json_data:
+        json_data = json_data["priceHistory"]
+    if "splitHistories" in json_data["history"]:
+        splits = json_data["history"]["splitHistories"]
 
         for split in splits:
             yield {

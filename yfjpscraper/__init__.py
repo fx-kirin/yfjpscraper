@@ -12,6 +12,7 @@ import datetime
 import json
 import logging
 import re
+from pathlib import Path
 from urllib.parse import urlencode
 
 import bs4
@@ -31,33 +32,53 @@ def get_data_stock(
     start_dt: datetime.date,
     end_dt: datetime.date,
 ):
-    jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
-    stockJwtToken = re.search(
-        r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
-    ).group(1)
-    page = 1
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
     code = re.search(r"\d{4}\.\w", result.url).group(0)
-    page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
+    jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
+    if "stocksJwtToken" in result.text:
+        stockJwtToken = re.search(
+            r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
+        ).group(1)
+        query_name = "priceHistory"
+        page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
+        inner_params = {
+                "code": code,
+                "fromDate": from_date,
+                "toDate": to_date,
+                "timeFrame": "daily",
+        }
+    elif "etfJwtToken" in result.text:
+        stockJwtToken = re.search(
+            r"\"etfJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
+        ).group(1)
+        query_name = "etfHistory"
+        page_url = "https://finance.yahoo.co.jp/web-etf/ajax"
+        inner_params = {
+                "stockCode": code,
+                "fromDate": from_date,
+                "toDate": to_date,
+                "timeFrame": "d",
+        }
+    Path("/tmp/sssresult.txt").write_text(result.text)
+
+    page = 1
     headers = {
         "x-z-jwt-token": stockJwtToken,
         "Accept": "*/*",
         "Origin": "https://finance.yahoo.co.jp",
         "Content-Type": "application/json",
         "Referer": result.url,
+        "Sec-Fetch-Dest": "empty",
+        "Sec-Fetch-Mode": "cors",
+        "Sec-Fetch-Site": "same-origin",
     }
     get_split = False
     while True:
+        inner_params["page"] = page
         params = {
-            "id": "priceHistory",
-            "params": {
-                "code": code,
-                "fromDate": from_date,
-                "toDate": to_date,
-                "timeFrame": "daily",
-                "page": page,
-            },
+            "id": query_name,
+            "params": inner_params
         }
         logger.info(page_url)
         resp = session.post(
@@ -111,14 +132,14 @@ def get_data_futures(
 def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date):
     tick_id = str(tick_id)
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
         "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
         "Connection": "keep-alive",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
         "Accept-Encoding": "gzip, deflate, br",
     }
     session = kanirequests.KaniRequests(
-        headers=headers,
+        headers=headers, proxy={"http": "192.168.100.108:8888", "https": "192.168.100.108:8888"}
     )
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
