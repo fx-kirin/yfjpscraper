@@ -132,7 +132,7 @@ def get_data_futures(
 def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date):
     tick_id = str(tick_id)
     headers = {
-        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:97.0) Gecko/20100101 Firefox/97.0",
+        "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
         "Accept-Language": "ja,en-US;q=0.7,en;q=0.3",
         "Connection": "keep-alive",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
