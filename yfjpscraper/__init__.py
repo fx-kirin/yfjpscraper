@@ -145,7 +145,7 @@ def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date, proxy
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
     if result.status_code != 200:
-        raise HTTPError(f"status code is {result.status_code}")
+        raise HTTPError(f"status code is {result.status_code} url:{root_url}")
     if "指定されたページまたは銘柄は存在しません。" in result.text:
         return get_data_futures(tick_id, start_dt, end_dt)
     else:
