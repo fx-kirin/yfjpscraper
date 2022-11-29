@@ -129,7 +129,7 @@ def get_data_futures(
         page = page + 1
 
 
-def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date):
+def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date, proxy=None):
     tick_id = str(tick_id)
     headers = {
         "User-Agent": "Mozilla/5.0 (X11; Ubuntu; Linux x86_64; rv:95.0) Gecko/20100101 Firefox/95.0",
@@ -139,7 +139,7 @@ def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date):
         "Accept-Encoding": "gzip, deflate, br",
     }
     session = kanirequests.KaniRequests(
-        headers=headers
+        headers=headers, proxy=proxy
     )
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)

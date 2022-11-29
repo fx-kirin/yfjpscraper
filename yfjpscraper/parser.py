@@ -79,7 +79,6 @@ def parse_json(json_data) -> bool:
 
 
 def parse_json_split(json_data):
-    breakpoint()
     if "priceHistory" in json_data:
         json_data = json_data["priceHistory"]
     if "splitHistories" in json_data["history"]:
