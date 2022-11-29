@@ -106,7 +106,7 @@ def get_data_futures(
 ):
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
-    code = re.search(r"\d{4}\.\w", result.url).group(0)
+    code = re.search(r"\d+\.\w", result.url).group(0)
     
     if "indicesJwtToken" in result.text:
         indeciesJwtToken = re.search(
@@ -117,7 +117,7 @@ def get_data_futures(
         raise NotImplementedError(f"jwt token doen't found url:{result.url}")
     page = 1
     while True:
-        page_url = f"https://finance.yahoo.co.jp/bff-pc-indices/v1/main/index/price/history/{tick_id}.T?fromDate={from_date}&page={page}&size=20&timeFrame=d&toDate={to_date}"
+        page_url = f"https://finance.yahoo.co.jp/bff-pc-indices/v1/main/index/price/history/{code}?fromDate={from_date}&page={page}&size=20&timeFrame=d&toDate={to_date}"
         headers = {
             "jwt-token": indeciesJwtToken,
             "Accept": "*/*",

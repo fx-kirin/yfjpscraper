@@ -82,7 +82,6 @@ def parse_json_of_future(json_data) -> bool:
     data_rows = json_data["histories"]
     if len(data_rows) == 0:
         return True
-    breakpoint()
     for row in data_rows:
         yield {
             "date": datetime.datetime.strptime(row["date"], fmt).date(),
