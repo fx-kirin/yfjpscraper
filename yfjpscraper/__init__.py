@@ -18,6 +18,7 @@ from urllib.parse import urlencode
 import bs4
 import kanirequests
 from kanirequests import KaniRequests
+from requests.models import HTTPError
 
 from .parser import parse_html, parse_json, parse_json_split
 
@@ -143,6 +144,9 @@ def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date, proxy
     )
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
+    breakpoint()
+    if result.status_code != 200:
+        raise HTTPError(f"status code is {result.status_code}")
     if "指定されたページまたは銘柄は存在しません。" in result.text:
         return get_data_futures(tick_id, start_dt, end_dt)
     else:
