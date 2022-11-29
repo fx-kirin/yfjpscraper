@@ -7,7 +7,7 @@ deps = [
 
 setup(
     name="yfjpscraper",
-    version="0.2.2",
+    version="0.2.3",
     description="yahoo finance japan parser",
     author="fx-kirin",
     author_email="fx.kirin@gmail.com",
