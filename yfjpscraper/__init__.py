@@ -20,7 +20,7 @@ import kanirequests
 from kanirequests import KaniRequests
 from requests.models import HTTPError
 
-from .parser import parse_html, parse_json, parse_json_split
+from .parser import parse_html, parse_json, parse_json_split, parse_json_of_future
 
 logger = logging.getLogger("yf_parser")
 page_url = "http://info.finance.yahoo.co.jp/history/"
@@ -44,10 +44,10 @@ def get_data_stock(
         query_name = "priceHistory"
         page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
         inner_params = {
-                "code": code,
-                "fromDate": from_date,
-                "toDate": to_date,
-                "timeFrame": "daily",
+            "code": code,
+            "fromDate": from_date,
+            "toDate": to_date,
+            "timeFrame": "daily",
         }
     elif "etfJwtToken" in result.text:
         stockJwtToken = re.search(
@@ -56,10 +56,10 @@ def get_data_stock(
         query_name = "etfHistory"
         page_url = "https://finance.yahoo.co.jp/web-etf/ajax"
         inner_params = {
-                "stockCode": code,
-                "fromDate": from_date,
-                "toDate": to_date,
-                "timeFrame": "d",
+            "stockCode": code,
+            "fromDate": from_date,
+            "toDate": to_date,
+            "timeFrame": "d",
         }
     else:
         raise NotImplementedError(f"jwt token doen't found url:{result.url}")
@@ -98,35 +98,41 @@ def get_data_stock(
 
 
 def get_data_futures(
+    session,
+    result,
     tick_id: str,
     start_dt: datetime.date,
     end_dt: datetime.date,
 ):
-    session = KaniRequests()
+    from_date = start_dt.strftime("%Y%m%d")
+    to_date = end_dt.strftime("%Y%m%d")
+    code = re.search(r"\d{4}\.\w", result.url).group(0)
+    
+    if "indicesJwtToken" in result.text:
+        indeciesJwtToken = re.search(
+            r"\"indicesJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
+        ).group(1)
+        query_name = "priceHistory"
+    else:
+        raise NotImplementedError(f"jwt token doen't found url:{result.url}")
     page = 1
     while True:
-        params = {
-            "code": tick_id,
-            "sy": start_dt.year,
-            "sm": start_dt.month,
-            "sd": start_dt.day,
-            "ey": end_dt.year,
-            "em": end_dt.month,
-            "ed": end_dt.day,
-            "tm": "d",
-            "p": page,
+        page_url = f"https://finance.yahoo.co.jp/bff-pc-indices/v1/main/index/price/history/{tick_id}.T?fromDate={from_date}&page={page}&size=20&timeFrame=d&toDate={to_date}"
+        headers = {
+            "jwt-token": indeciesJwtToken,
+            "Accept": "*/*",
+            "Origin": "https://finance.yahoo.co.jp",
+            "Content-Type": "application/json",
+            "Referer": result.url,
+            "Sec-Fetch-Dest": "empty",
+            "Sec-Fetch-Mode": "cors",
+            "Sec-Fetch-Site": "same-origin",
         }
-        logger.info(page_url + "?" + urlencode(params))
-        resp = session.get(page_url, params=params)
-        if not resp.ok:
-            break
-        if "該当する期間のデータはありません。" in resp.text:
-            break
-        if "該当する銘柄はありません。" in resp.text:
-            logger.info("Target stock was not found.")
-            break
-        html_soup = bs4.BeautifulSoup(resp.text, "html.parser")
-        stop = yield from parse_html(html_soup)
+        resp = session.get(
+            page_url, headers=headers
+        )
+        json_data = resp.json()
+        stop = yield from parse_json_of_future(json_data)
         if stop:
             break
         page = page + 1
@@ -146,9 +152,9 @@ def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date, proxy
     )
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
-    if "指定されたページまたは銘柄は存在しません。" in result.text:
-        return get_data_futures(tick_id, start_dt, end_dt)
-    elif result.status_code != 200:
+    if result.status_code != 200:
         raise HTTPError(f"status code is {result.status_code} url:{root_url}")
-    else:
+    if len(tick_id) == 4:
         return get_data_stock(session, result, tick_id, start_dt, end_dt)
+    else:
+        return get_data_futures(session, result, tick_id, start_dt, end_dt)

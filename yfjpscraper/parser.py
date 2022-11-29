@@ -78,6 +78,22 @@ def parse_json(json_data) -> bool:
     return False
 
 
+def parse_json_of_future(json_data) -> bool:
+    data_rows = json_data["histories"]
+    if len(data_rows) == 0:
+        return True
+    breakpoint()
+    for row in data_rows:
+        yield {
+            "date": datetime.datetime.strptime(row["date"], fmt).date(),
+            "open_v": float(row["openPrice"].replace(",", "")),
+            "high_v": float(row["highPrice"].replace(",", "")),
+            "low_v": float(row["lowPrice"].replace(",", "")),
+            "close_v": float(row["closePrice"].replace(",", "")),
+        }
+    return False
+
+
 def parse_json_split(json_data):
     if "priceHistory" in json_data:
         json_data = json_data["priceHistory"]
