@@ -26,6 +26,10 @@ logger = logging.getLogger("yf_parser")
 page_url = "http://info.finance.yahoo.co.jp/history/"
 
 
+class NotFoundError(RuntimeError):
+    pass
+
+
 def get_data_stock(
     session,
     result,
@@ -62,7 +66,7 @@ def get_data_stock(
             "timeFrame": "d",
         }
     else:
-        raise NotImplementedError(f"jwt token doen't found url:{result.url}")
+        raise NotFoundError(f"jwt token doen't found url:{result.url}")
     Path("/tmp/sssresult.txt").write_text(result.text)
 
     page = 1
@@ -154,7 +158,7 @@ def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date, proxy
     result = session.get(root_url)
     if result.status_code != 200:
         raise HTTPError(f"status code is {result.status_code} url:{root_url}")
-    if len(tick_id) == 4:
-        return get_data_stock(session, result, tick_id, start_dt, end_dt)
-    else:
+    if "indicesJwtToken" in result.text:
         return get_data_futures(session, result, tick_id, start_dt, end_dt)
+    else:
+        return get_data_stock(session, result, tick_id, start_dt, end_dt)
