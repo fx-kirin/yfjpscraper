@@ -91,6 +91,8 @@ def get_data_stock(
         resp = session.post(
             page_url, data=json.dumps(params).replace(" ", ""), headers=headers
         )
+        if resp.status_code != 200:
+            raise HTTPError(f"status code is {resp.status_code} {page_url=} {params=}")
         json_data = resp.json()
         if get_split is False:
             yield from parse_json_split(json_data)
