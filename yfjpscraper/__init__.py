@@ -46,7 +46,7 @@ def get_data_stock(
             r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
         ).group(1)
         query_name = "priceHistory"
-        page_url = "https://finance.yahoo.co.jp/web-pc-stocks/ajax"
+        page_url = "https://finance.yahoo.co.jp/quote/stocks/ajax"
         inner_params = {
             "code": code,
             "fromDate": from_date,
