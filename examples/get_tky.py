@@ -1,7 +1,7 @@
 import datetime
 from yfjpscraper import get_data
 
-tick_id = 1654
+tick_id = 7201
 start_dt = datetime.date(2021, 1, 1)
 end_dt = datetime.date(2021, 3, 1)
 resp = get_data(tick_id, start_dt, end_dt)

@@ -154,7 +154,7 @@ def get_data(tick_id: str, start_dt: datetime.date, end_dt: datetime.date, proxy
         "Accept-Encoding": "gzip, deflate, br",
     }
     session = kanirequests.KaniRequests(
-        headers=headers, proxy=proxy
+        headers=headers, proxy=proxy, default_timeout=30
     )
     root_url = f"https://finance.yahoo.co.jp/quote/{tick_id}/history"
     result = session.get(root_url)
