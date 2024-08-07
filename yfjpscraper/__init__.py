@@ -58,7 +58,7 @@ def get_data_stock(
             r"\"etfJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
         ).group(1)
         query_name = "etfHistory"
-        page_url = "https://finance.yahoo.co.jp/web-etf/ajax"
+        page_url = "https://finance.yahoo.co.jp/quote/etf-reit/ajax"
         inner_params = {
             "stockCode": code,
             "fromDate": from_date,
