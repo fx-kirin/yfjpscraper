@@ -78,6 +78,26 @@ def parse_json(json_data) -> bool:
     return False
 
 
+
+def parse_json_v2(json_data) -> bool:
+    data_rows = json_data["history"]["histories"]
+    if len(data_rows) == 0:
+        return True
+    for row in data_rows:
+        yield {
+            "date": datetime.datetime.strptime(row["date"], fmt).date(),
+            "open_v": float(row["values"][0]["value"].replace(",", "")),
+            "high_v": float(row["values"][1]["value"].replace(",", "")),
+            "low_v": float(row["values"][2]["value"].replace(",", "")),
+            "close_v": float(row["values"][3]["value"].replace(",", "")),
+            "volume": float(row["values"][4]["value"].replace(",", "")),
+            "final_v": float(row["values"][5]["value"].replace(",", "")),
+        }
+    if "splitHistories" in json_data["history"]:
+        split = json_data["history"]["splitHistories"]
+    return False
+
+
 def parse_json_of_future(json_data) -> bool:
     data_rows = json_data["histories"]
     if len(data_rows) == 0:

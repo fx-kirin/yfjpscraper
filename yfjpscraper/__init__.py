@@ -20,7 +20,7 @@ import kanirequests
 from kanirequests import KaniRequests
 from requests.models import HTTPError
 
-from .parser import parse_html, parse_json, parse_json_split, parse_json_of_future
+from .parser import parse_html, parse_json, parse_json_v2, parse_json_split, parse_json_of_future
 
 logger = logging.getLogger("yf_parser")
 page_url = "http://info.finance.yahoo.co.jp/history/"
@@ -41,6 +41,7 @@ def get_data_stock(
     to_date = end_dt.strftime("%Y%m%d")
     code = re.search(r"\d{4}\.\w", result.url).group(0)
     jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
+    api_version = 1
     if "stocksJwtToken" in result.text:
         stockJwtToken = re.search(
             r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
@@ -53,18 +54,20 @@ def get_data_stock(
             "toDate": to_date,
             "timeFrame": "daily",
         }
+        api_version = 1
     elif "etfJwtToken" in result.text:
         stockJwtToken = re.search(
             r"\"etfJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
         ).group(1)
         query_name = "etfHistory"
-        page_url = "https://finance.yahoo.co.jp/quote/etf-reit/ajax"
+        page_url = "https://finance.yahoo.co.jp/quote/etf-reit/ajax/v2"
         inner_params = {
             "stockCode": code,
             "fromDate": from_date,
             "toDate": to_date,
             "timeFrame": "d",
         }
+        api_version = 2
     else:
         raise NotFoundError(f"jwt token doen't found url:{result.url}")
     Path("/tmp/sssresult.txt").write_text(result.text)
@@ -97,7 +100,11 @@ def get_data_stock(
         if get_split is False:
             yield from parse_json_split(json_data)
             get_split = True
-        stop = yield from parse_json(json_data)
+        match api_version:
+            case 1:
+                stop = yield from parse_json(json_data)
+            case 2:
+                stop = yield from parse_json_v2(json_data)
         if stop:
             break
         page = page + 1
