@@ -1,9 +1,9 @@
 import datetime
 from yfjpscraper import get_data
 
-tick_id = 7201
-start_dt = datetime.date(2021, 1, 1)
-end_dt = datetime.date(2021, 3, 1)
+tick_id = 8951
+start_dt = datetime.date(2024, 9, 26)
+end_dt = datetime.date(2024, 9, 27)
 resp = get_data(tick_id, start_dt, end_dt)
 
 for data in resp:
