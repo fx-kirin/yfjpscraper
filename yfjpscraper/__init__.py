@@ -40,59 +40,32 @@ def get_data_stock(
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
     code = re.search(r"\d{4}\.\w", result.url).group(0)
-    jwtToken = re.search(r"\"jwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text).group(1)
-    api_version = 1
-    if "stocksJwtToken" in result.text:
-        stockJwtToken = re.search(
-            r"\"stocksJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
-        ).group(1)
-        query_name = "priceHistory"
-        page_url = "https://finance.yahoo.co.jp/quote/stocks/ajax"
-        inner_params = {
-            "code": code,
-            "fromDate": from_date,
-            "toDate": to_date,
-            "timeFrame": "daily",
-        }
-        api_version = 1
-    elif "etfJwtToken" in result.text:
-        stockJwtToken = re.search(
-            r"\"etfJwtToken\":\"([0-9a-zA-Z\._\-]*)\"", result.text
-        ).group(1)
-        query_name = "etfHistory"
-        page_url = "https://finance.yahoo.co.jp/quote/etf-reit/ajax/v2"
-        inner_params = {
-            "stockCode": code,
-            "fromDate": from_date,
-            "toDate": to_date,
-            "timeFrame": "d",
-        }
-        api_version = 2
-    else:
-        raise NotFoundError(f"jwt token doen't found url:{result.url}")
-    Path("/tmp/sssresult.txt").write_text(result.text)
+    jwtToken = re.search(r"\\\"jwtToken\\\":\\\"([0-9a-zA-Z\\\._\\\-]*)\\\"", result.text).group(1)
+    page_url = "https://finance.yahoo.co.jp/bff-quote-stocks/v1/ajax/history/price"
+    inner_params = {
+        "code": code,
+        "fromDate": from_date,
+        "toDate": to_date,
+        "timeFrameId": "d",
+    }
 
     page = 1
     headers = {
-        "x-z-jwt-token": stockJwtToken,
+        "x-jwt-token": jwtToken,
         "Accept": "*/*",
-        "Origin": "https://finance.yahoo.co.jp",
-        "Content-Type": "application/json",
         "Referer": result.url,
+        "DNT": "1",
         "Sec-Fetch-Dest": "empty",
         "Sec-Fetch-Mode": "cors",
         "Sec-Fetch-Site": "same-origin",
+        "Priority": "u=0",
     }
     get_split = False
     while True:
         inner_params["page"] = page
-        params = {
-            "id": query_name,
-            "params": inner_params
-        }
         logger.info(page_url)
-        resp = session.post(
-            page_url, data=json.dumps(params).replace(" ", ""), headers=headers
+        resp = session.get(
+            page_url, params=inner_params, headers=headers
         )
         if resp.status_code != 200:
             raise HTTPError(f"status code is {resp.status_code} {page_url=} {params=}")
@@ -100,11 +73,7 @@ def get_data_stock(
         if get_split is False:
             yield from parse_json_split(json_data)
             get_split = True
-        match api_version:
-            case 1:
-                stop = yield from parse_json(json_data)
-            case 2:
-                stop = yield from parse_json_v2(json_data)
+        stop = yield from parse_json(json_data)
         if stop:
             break
         page = page + 1
