@@ -39,7 +39,7 @@ def get_data_stock(
 ):
     from_date = start_dt.strftime("%Y%m%d")
     to_date = end_dt.strftime("%Y%m%d")
-    code = re.search(r"\d{4}\.\w", result.url).group(0)
+    code = re.search(r"\d{3}\w\.\w", result.url).group(0)
     jwtToken = re.search(r"\\\"jwtToken\\\":\\\"([0-9a-zA-Z\\\._\\\-]*)\\\"", result.text).group(1)
     page_url = "https://finance.yahoo.co.jp/bff-quote-stocks/v1/ajax/history/price"
     inner_params = {
