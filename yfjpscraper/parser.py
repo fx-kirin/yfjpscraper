@@ -63,8 +63,12 @@ def parse_json(json_data) -> bool:
         return True
     for row in data_rows:
         if "values" in row:
+            try:
+                parse_date = datetime.datetime.strptime(row["date"], "%Y-%m-%d").date()
+            except ValueError:
+                parse_date = datetime.datetime.strptime(row["date"], "%Y/%m/%d").date()
             yield {
-                "date": datetime.datetime.strptime(row["date"], "%Y/%m/%d").date(),
+                "date": parse_date,
                 "open_v": float(row["values"][0]["value"].replace(",", "")),
                 "high_v": float(row["values"][1]["value"].replace(",", "")),
                 "low_v": float(row["values"][2]["value"].replace(",", "")),
