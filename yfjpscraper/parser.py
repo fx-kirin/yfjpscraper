@@ -129,8 +129,12 @@ def parse_json_split(json_data):
             match = re.search("分割：([\.0-9]+)株→([\.0-9]+)株", row["splitText"])
             division_from = match.group(1)
             division_to = match.group(2)
+            try:
+                parse_date = datetime.datetime.strptime(row["date"], "%Y-%m-%d").date()
+            except ValueError:
+                parse_date = datetime.datetime.strptime(row["date"], "%Y/%m/%d").date()
             yield {
-                "date": datetime.datetime.strptime(row["date"], "%Y/%m/%d").date(),
+                "date": parse_date,
                 "division": "division",
                 "division_from": float(division_from.replace(",", "")),
                 "division_to": float(division_to.replace(",", "")),
